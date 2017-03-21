@@ -228,8 +228,8 @@ begin
   end;
   Obj := JSONRespScr as TJSONObject;
   try
-    // TMonitor.Enter(FScreens);
-    FCritical.Enter;
+    TMonitor.Enter(FScreens);
+    // FCritical.Enter;
     try
       for I := 0 to Obj.Count - 1 do
       begin
@@ -240,17 +240,20 @@ begin
           Key := Obj2.Pairs[X].JsonString.Value;
           if not FScreens.ContainsKey(Key) then // Verificar as Keys que precisa atualizar
           begin
-            delete(Posicao, 1, 1);
-            ChatFile := TScreenParser.GetScreen(Posicao, Obj2.Pairs[X].JsonValue as TJSONObject);
-            FScreens.Add(Key, ChatFile);
-            OnNewScreen(ChatFile);
-            // RemoveOlderFiles;
+            try
+              delete(Posicao, 1, 1);
+              ChatFile := TScreenParser.GetScreen(Posicao, Obj2.Pairs[X].JsonValue as TJSONObject);
+              FScreens.Add(Key, ChatFile);
+              OnNewScreen(ChatFile);
+              // RemoveOlderFiles;
+            except
+            end;
           end;
         end;
       end;
     finally
-      // TMonitor.exit(FScreens);
-      FCritical.Release;
+      TMonitor.exit(FScreens);
+      // FCritical.Release;
     end;
   finally
     Obj.Free;
@@ -258,10 +261,12 @@ begin
 end;
 
 procedure TFirebaseChatFacade.RemoveOlderMessage;
+
 var
   Pair: TPair<string, TChatMessage>;
   Older: TDateTime;
   ToDelete: string;
+
 begin
   TMonitor.Enter(FMessages);
   try
@@ -319,7 +324,7 @@ begin
       FFC.SetToken(FToken);
       ToSend := TScreenParser.GetJSONScreen(AFileStream);
       QueryParams := TDictionary<string, string>.Create;
-      FFC.Delete(['screen/a' + IntToStr(PosX) + IntToStr(PosY) + '.json'], QueryParams);
+      FFC.delete(['screen/a' + IntToStr(PosX) + IntToStr(PosY) + '.json'], QueryParams);
       FFC.Post(['screen/a' + IntToStr(PosX) + IntToStr(PosY) + '.json'], ToSend);
     end);
 end;
@@ -445,7 +450,7 @@ begin
         // QueryParams.Add('limitToLast', '1');
         while Run do
         begin
-          Response := FFC.Delete(['.json'], QueryParams);
+          Response := FFC.delete(['.json'], QueryParams);
           ParseResponseMsg(Response);
           TThread.Sleep(30000);
         end;

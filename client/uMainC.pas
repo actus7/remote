@@ -123,14 +123,17 @@ begin
   try
     Png := PngFromBase64(AImagem.FileStream);
     try
-      Application.ProcessMessages;
-      TImage(Application.FindComponent('Captura' + AImagem.Position)).Picture.Assign(nil);
-      TImage(Application.FindComponent('Captura' + AImagem.Position)).Picture.Assign(Png);
+      try
+        Application.ProcessMessages;
+        TImage(Application.FindComponent('Captura' + AImagem.Position)).Picture.Assign(nil);
+        TImage(Application.FindComponent('Captura' + AImagem.Position)).Picture.Assign(Png);
+      finally
+        TImage(Application.FindComponent('Captura' + AImagem.Position)).Update;
+      end;
     finally
-      TImage(Application.FindComponent('Captura' + AImagem.Position)).Update;
+      Png.Free;
     end;
-  finally
-    Png.Free;
+  except
   end;
 end;
 
